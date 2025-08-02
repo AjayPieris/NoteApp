@@ -8,7 +8,8 @@ function App() {
 
   return (
     <>
-      <h1 class='text-3xl'>Start Check</h1>
+      <h1 class='text-3xl'>Start Check</h1>\
+      <p>whjdhfhjrfhrghjghjr</p>
     </>
   )
 }
