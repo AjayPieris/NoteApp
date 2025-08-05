@@ -15,7 +15,8 @@ const routes = (
 );
 
 const App = () => {
-  return <div>{routes}</div>;
+  return <div>{routes}
+  </div>;
 };
 
 export default App
