@@ -4,6 +4,7 @@ import TagInput from '../../components/input/TagInput';
 function AddEditNotes() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [tags, setTags] = useState([]);
 
   return (
     <>
@@ -15,7 +16,7 @@ function AddEditNotes() {
             className="text-2xl text-slate-950 outline-none border-b border-gray-300 focus:border-blue-500"
             placeholder="Go To Gym At 5"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={({target}) => setTitle(target.value)}
           />
         </div>
 
@@ -26,14 +27,17 @@ function AddEditNotes() {
             rows={10}
             className="h-36 text-sm text-slate-950 outline-none bg-slate-50 p-2 rounded border border-gray-300 focus:border-blue-500"
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={({target}) => setContent(target.value)}
           />
         </div>
       </div>
 
       <div className="mt-3">
         <label className="text-sm font-medium text-gray-700">TAGS</label>
-        <TagInput />
+       {/* Show the TagInput component */}
+       {/* Give it the current list of tags */}
+        {/* Give it the power to change the tags */}
+        <TagInput tags={tags} setTags={setTags}/>
       </div>
 
       <button

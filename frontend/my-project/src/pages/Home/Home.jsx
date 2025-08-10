@@ -7,7 +7,7 @@ import Modal from "react-modal"; // library that shows a popup window
 
 function Home() {
   const [openAddEditModal, setOpenEditModel] = useState({
-    isShown: false, //false (closed), true (open)
+    isShown: false, //
     type: "add",//What kind of action is the popup for?
     data: null,
   });
