@@ -14,7 +14,7 @@ function Navbar() {
 
   // This function runs when the user clicks the Logout button
   const onLogout = () => {
-    navigate("/Logout"); // Redirect to the Logout page
+    navigate("/Login"); // Redirect to the Logout page
   };
 
   // This function will run when the search icon is clicked (🔍)

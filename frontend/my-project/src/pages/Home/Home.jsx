@@ -15,8 +15,8 @@ function Home() {
   return (
     <>
       <Navbar />
-      <div className="container mx-auto">
-        <div className="grid grid-cols-3 gap-4 m-8">
+      <div className="container mx-auto ">
+        <div className="grid grid-cols-3 gap-4 m-8 ">
           <NoteCard
             title="Meeting on 25th December"
             date="12th Dec 2025"
@@ -50,7 +50,13 @@ function Home() {
         contentLabel=""
         className="w-[40%] max-h-[75%] bg-white rounded-md mx-auto mt-14 p-5 overflow-hidden"
       >
-        <AddEditNotes />
+        <AddEditNotes 
+        type={openAddEditModal.type}
+        noteData={openAddEditModal.data}
+        onClose={()=>{
+          setOpenEditModel({isShown: false, type:"add", data: null})
+        }}
+        />
       </Modal>
     </>
   );
