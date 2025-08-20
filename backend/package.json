@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodeman index.js"
+    "start": "nodemon index.js"
   },
   "author": "",
   "license": "ISC",
@@ -14,7 +14,10 @@
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mongose": "^0.0.2-security",
-    "nodeman": "^1.1.2"
+    "mongoose": "^8.17.2",
+    "mongose": "^0.0.2-security"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
   }
 }
