@@ -6,6 +6,8 @@ const mongoose = require("mongoose");
 mongoose.connect(config.connectionString);
 
 const User = require("./Models/user.model");
+const Note = require("./Models/note.model");
+
 const express = require("express")
 const cors = require("cors");
 const app = express();
@@ -51,7 +53,7 @@ app.post("/create-account", async (req, res) => {
 
     await user.save();
 
-    const accessToken = jwt.sign({ email: user.email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+    const accessToken = jwt.sign({ _id: user._id, email: user.email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
     
     return res.json({
         error: false,
@@ -80,7 +82,7 @@ app.post("/login", async (req, res) => {
     if (user.password !== password) {
         return res.status(400).json({ error: "Invalid password" });
     }
-    const accessToken = jwt.sign({ email: user.email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+    const accessToken = jwt.sign({ _id: user._id, email: user.email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
 
     return res.json({
         error: false,
@@ -89,6 +91,33 @@ app.post("/login", async (req, res) => {
         message: "Login successful"
     });
 });
+
+app.post("/add-note", authenticateToken, async (req, res) => {
+    const { title, content, tags } = req.body;
+
+    if (!title || !content) {
+        return res.status(400).json({ error: "Title and content are required" });
+    }
+   try {
+    const note = new Note({
+        title,
+        content,
+        tags: tags || [],
+        userId: req.user._id,
+    });
+
+    await note.save();
+
+    return res.json({
+        error: false,
+        note,
+        message: "Note added successfully"
+    });
+    }
+     catch(error) {
+         return res.status(500).json({ error: "Failed to add note" });
+    }
+    });
 
 app.listen(5000, () => {
     console.log("Server is running on port 5000");
