@@ -15,37 +15,45 @@ const Note = require("./Models/note.model");
 const app = express();
 
 // startup checks
+// Stop app if secret key is missing
 if (!process.env.ACCESS_TOKEN_SECRET) {
-  console.error("ACCESS_TOKEN_SECRET is not set in .env");
+  console.error("ACCESS_TOKEN_SECRET is not set");
   process.exit(1);
-}
+} // Why: prevents app running without the secret (for security)
 
 // middleware
+// 1. Allow requests from any website (CORS)
 app.use(cors({ origin: "*" }));
+// 2. Automatically read JSON data sent by clients
 app.use(express.json());
+// 3. Automatically read data sent from HTML forms
 app.use(express.urlencoded({ extended: true }));
+
 
 // handle invalid JSON payloads gracefully
 app.use((err, req, res, next) => {
+   // Check if the error is caused by bad JSON in the request
   if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
     return res.status(400).json({ error: "Invalid JSON payload" });
   }
+  // If it’s another kind of error, pass it to the next error handler
   next(err);
 });
 
-// connect DB with logging
-mongoose
-  .connect(config.connectionString)
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => {
-    console.error("Failed to connect to MongoDB:", err.message);
-    process.exit(1);
+// Connect to MongoDB
+mongoose.connect(config.connectionString)
+  .then(() => console.log("Connected to MongoDB")) // success
+  .catch((err) => {                                // failure
+    console.error("Failed to connect:", err.message);
+    process.exit(1);                                // stop app
   });
 
 // test route
 app.get("/", (req, res) => {
   res.json({ data: "Hello World" });
 });
+
+//Backend Ready!!
 
 // create account
 app.post("/create-account", async (req, res) => {
@@ -113,6 +121,27 @@ app.post("/login", async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: "Server error" });
   }
+});
+
+//Get User
+app.get("/get-user", authenticateToken, async (req, res) => {
+  const userId = req.user._id;
+  const isUser = await User.findById(userId);
+  if (!isUser)
+    {
+      return res.status(404).json({ error: "User not found"  });
+    }
+
+  return res.json({
+    error: false,
+    user: {
+      fullName: isUser.fullName,
+      email: isUser.email,
+      id: isUser._id,
+      createdOn: isUser.createdOn,
+    },
+    message: "User retrieved successfully",
+  });
 });
 
 // add note
