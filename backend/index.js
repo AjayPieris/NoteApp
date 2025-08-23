@@ -58,35 +58,63 @@ app.get("/", (req, res) => {
 // create account
 app.post("/create-account", async (req, res) => {
   try {
-    const { fullName, email, password } = req.body || {};
+    const { fullName, email, password } = req.body;
 
-    if (!fullName)
-      return res.status(400).json({ error: "Full name is required" });
-    if (!email) return res.status(400).json({ error: "Email is required" });
-    if (!password)
-      return res.status(400).json({ error: "Password is required" });
+    // Check required fields
+    if (!fullName || !email || !password)
+      return res.status(400).json({ error: "All fields are required" });
 
+    // Check if user exists
     const isUser = await User.findOne({ email });
     if (isUser) return res.status(400).json({ error: "User already exists" });
 
+    // Hash password & save user
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const user = new User({ fullName, email, password: hashedPassword });
     await user.save();
 
+    // Generate JWT token
     const accessToken = jwt.sign(
       { _id: user._id, email: user.email },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "1h" }
     );
 
-    return res.json({
-      error: false,
-      user,
-      accessToken,
-      message: "User created successfully",
-    });
-  } catch (err) {
+    // Send success response
+    return res.json({ error: false, user, accessToken, message: "User created successfully" });
+  } catch {
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+// create account
+app.post("/create-account", async (req, res) => {
+  try {
+    const { fullName, email, password } = req.body;
+
+    // Check required fields
+    if (!fullName || !email || !password)
+      return res.status(400).json({ error: "All fields are required" });
+
+    // Check if user exists
+    const isUser = await User.findOne({ email });
+    if (isUser) return res.status(400).json({ error: "User already exists" });
+
+    // Hash password & save user
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({ fullName, email, password: hashedPassword });
+    await user.save();
+
+    // Generate JWT token
+    const accessToken = jwt.sign(
+      { _id: user._id, email: user.email },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    // Send success response
+    return res.json({ error: false, user, accessToken, message: "User created successfully" });
+  } catch {
     return res.status(500).json({ error: "Server error" });
   }
 });
@@ -94,31 +122,30 @@ app.post("/create-account", async (req, res) => {
 // login
 app.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body || {};
+    const { email, password } = req.body;
 
-    if (!email) return res.status(400).json({ error: "Email is required" });
-    if (!password)
-      return res.status(400).json({ error: "Password is required" });
+    // Check required fields
+    if (!email || !password)
+      return res.status(400).json({ error: "Email & password required" });
 
+    // Find user
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ error: "User not found" });
 
+    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ error: "Invalid password" });
 
+    // Generate JWT token
     const accessToken = jwt.sign(
       { _id: user._id, email: user.email },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "1h" }
     );
 
-    return res.json({
-      error: false,
-      user,
-      accessToken,
-      message: "Login successful",
-    });
-  } catch (err) {
+    // Send success response
+    return res.json({ error: false, user, accessToken, message: "Login successful" });
+  } catch {
     return res.status(500).json({ error: "Server error" });
   }
 });
@@ -138,7 +165,6 @@ app.get("/get-user", authenticateToken, async (req, res) => {
       fullName: isUser.fullName,
       email: isUser.email,
       id: isUser._id,
-      createdOn: isUser.createdOn,
     },
     message: "User retrieved successfully",
   });
