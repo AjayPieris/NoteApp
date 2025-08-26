@@ -151,14 +151,20 @@ app.post("/login", async (req, res) => {
 });
 
 //Get User
+// Route to get user details
 app.get("/get-user", authenticateToken, async (req, res) => {
+  // Get the user ID from the token
   const userId = req.user._id;
-  const isUser = await User.findById(userId);
-  if (!isUser)
-    {
-      return res.status(404).json({ error: "User not found"  });
-    }
 
+  // Find the user in the database by ID
+  const isUser = await User.findById(userId);
+
+  // If user does not exist, return 404 error
+  if (!isUser) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  // If user exists, return user details
   return res.json({
     error: false,
     user: {
@@ -171,64 +177,90 @@ app.get("/get-user", authenticateToken, async (req, res) => {
 });
 
 // add note
+// Route to add a new note
 app.post("/add-note", authenticateToken, async (req, res) => {
   try {
+    // Destructure title, content, and tags from request body
     const { title, content, tags } = req.body || {};
 
+    // Check if required fields are provided
     if (!title || !content) {
       return res.status(400).json({ error: "Title and content are required" });
     }
 
+    // Create a new note document
     const note = new Note({
       title,
       content,
-      tags: Array.isArray(tags) ? tags : [],
-      userId: req.user._id,
+      tags: Array.isArray(tags) ? tags : [], // Ensure tags is an array
+      userId: req.user._id, // Associate note with logged-in user
     });
 
+    // Save the note to the database
     await note.save();
 
+    // Optional: log note creation for debugging
+    console.log(`Note created: ${note.title} by user ${req.user._id}`);
+
+    // Return success response with note details
     return res.json({
       error: false,
       note,
       message: "Note added successfully",
     });
   } catch (error) {
+    // Handle any errors that occur during note creation
+    console.error("Error adding note:", error);
     return res.status(500).json({ error: "Failed to add note" });
   }
 });
 
+
 // edit note
+// Route to edit a note by its ID
 app.put("/edit-note/:noteId", authenticateToken, async (req, res) => {
+
+  // Get the note ID from the URL (example: /edit-note/12345)
   const noteId = req.params.noteId;
+
+  // Get possible fields to update from the request body
   const { title, content, tags, isPinned } = req.body || {};
+
   const userId = req.user._id;
 
-  const update = {};
+  const update = {};// empty object to keep changes
   if (typeof title === "string") update.title = title;
   if (typeof content === "string") update.content = content;
-  if (Array.isArray(tags)) update.tags = tags;
+  if (tags) update.tags = tags;
   if (typeof isPinned === "boolean") update.isPinned = isPinned;
 
+  // If no valid fields were given, stop and return an error
   if (Object.keys(update).length === 0) {
     return res.status(400).json({ error: "At least one field is required" });
   }
 
   try {
+    // Find the note by ID and userId, then update it with given fields
+    // $set means: only change the fields provided in "update"
+    // new: true means return the updated version of the note
     const note = await Note.findOneAndUpdate(
       { _id: noteId, userId },
       { $set: update },
       { new: true }
     );
+
+    // If no note is found (maybe wrong ID or not owned by this user), return 404
     if (!note) return res.status(404).json({ error: "Note not found" });
 
+    // If everything worked, return the updated note with a success message
     return res.json({
       error: false,
       note,
       message: "Note updated successfully",
     });
   } catch (error) {
-    console.error(error);
+    // If something goes wrong in the process, log it and return server error
+    console.log(error);
     return res.status(500).json({ error: "Failed to update note" });
   }
 });
@@ -246,7 +278,7 @@ app.get("/get-all-notes", authenticateToken, async (req, res) => {
       message: "All notes retrieved successfully",
     });
   } catch (error) {
-    console.error(error);
+    console.log(error);
     return res.status(500).json({ error: "Failed to fetch notes" });
   }
 });
