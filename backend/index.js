@@ -266,81 +266,106 @@ app.put("/edit-note/:noteId", authenticateToken, async (req, res) => {
 });
 
 // Get All Notes
+// Route to get all notes for the logged-in user
 app.get("/get-all-notes", authenticateToken, async (req, res) => {
+
   try {
+    // Find all notes that belong to this user and sort pinned notes first
     const notes = await Note.find({ userId: req.user._id }).sort({
-      isPinned: -1,
+      isPinned: -1, // -1 = pinned (true) first, then unpinned (false)
     });
 
+    // Send the notes back with a success message
     return res.json({
-      error: false,
-      notes,
-      message: "All notes retrieved successfully",
+      error: false,                // no error happened
+      notes,                        // the list of notes
+      message: "All notes retrieved successfully", // success message
     });
+
   } catch (error) {
+    // If something goes wrong, log it and return a server error
     console.log(error);
     return res.status(500).json({ error: "Failed to fetch notes" });
   }
 });
 
+
 // Delete Note
+// Route to delete a note by its ID
 app.delete("/delete-note/:noteId", authenticateToken, async (req, res) => {
+
+  // Get the note ID from the URL
   const noteId = req.params.noteId;
+
+  // Get the logged-in user's ID from the token
   const userId = req.user._id;
 
   try {
+    // Try to find and delete the note that belongs to this user
     const note = await Note.findOneAndDelete({ _id: noteId, userId });
+
+    // If no note is found, return 404 error
     if (!note) return res.status(404).json({ error: "Note not found" });
 
+    // (Optional) delete again just to make sure 
     await Note.deleteOne({ _id: noteId, userId });
 
     return res.json({
-      error: false,
-      message: "Note deleted successfully",
+      error: false,               // no error happened
+      message: "Note deleted successfully", // success message
     });
+
   } catch (error) {
+    // If something goes wrong, log it and return server error
     console.error(error);
     return res.status(500).json({ error: "Failed to delete note" });
   }
 });
 
+
 // Update isPinned Value
 app.put("/update-note-pinned/:noteId", authenticateToken, async (req, res) => {
+
   const noteId = req.params.noteId;
+
   const userId = req.user._id;
 
   let { isPinned } = req.body || {};
 
-  // Coerce common client formats
+  // Convert common client formats to boolean
   if (typeof isPinned === "string") {
-    if (isPinned.toLowerCase() === "true") isPinned = true;
-    else if (isPinned.toLowerCase() === "false") isPinned = false;
+    if (isPinned.toLowerCase() === "true") isPinned = true;  // "true" -> true
+    else if (isPinned.toLowerCase() === "false") isPinned = false; // "false" -> false
   } else if (typeof isPinned === "number") {
-    isPinned = isPinned === 1;
+    isPinned = isPinned === 1;  // 1 -> true, other numbers -> false
   }
 
+  // If isPinned is not a valid boolean after conversion, return error
   if (typeof isPinned !== "boolean") {
     return res.status(400).json({ error: "isPinned must be a boolean" });
   }
 
   try {
+    // Find the note by ID and user, then update only its isPinned field
     const note = await Note.findOneAndUpdate(
-      { _id: noteId, userId },
-      { $set: { isPinned } },
-      { new: true }
+      { _id: noteId, userId },       // search condition
+      { $set: { isPinned } },        // update only isPinned
+      { new: true }                  // return updated note
     );
+
+    // If note not found, return 404
     if (!note) return res.status(404).json({ error: "Note not found" });
 
+    // Return the updated note and success message
     return res.json({
       error: false,
       note,
       message: "Note pinned status updated successfully",
     });
+
   } catch (error) {
     console.error(error);
-    return res
-      .status(500)
-      .json({ error: "Failed to update note pinned status" });
+    return res.status(500).json({ error: "Failed to update note pinned status" });
   }
 });
 
