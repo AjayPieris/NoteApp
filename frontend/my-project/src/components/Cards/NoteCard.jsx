@@ -1,4 +1,5 @@
 import React from "react";
+import moment from "moment"; // For date formatting
 import { MdOutlinePushPin } from "react-icons/md"; // Pin icon
 import { MdCreate, MdDelete } from "react-icons/md"; // Edit and Delete icons
 
@@ -21,7 +22,7 @@ function NoteCard({
         <div className="flex items-center justify-between">
           <div>
             <h6 className="text-sm font-medium">{title}</h6> {/* Show note title */}
-            <span className="text-xs text-slate-500">{date}</span> {/* Show date */}
+            <span className="text-xs text-slate-500">{moment(date).format("Do MMMM YYYY")}</span> {/* Show date */}
           </div>
 
           {/* Pin icon: changes color if pinned */}
@@ -38,7 +39,7 @@ function NoteCard({
      
         {/* Footer: Tags + Edit/Delete icons */}
         <div className="flex items-center justify-between mt-2">
-          <div className="text-xs text-slate-500">{tags}</div> {/* Show tags */}
+          <div className="text-xs text-slate-500">{tags.map((item)=>`#${item}`)}</div> {/* Show tags */}
 
           <div className="flex items-center gap-2">
             {/* Edit icon */}

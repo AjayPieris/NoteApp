@@ -1,20 +1,13 @@
-import React, { useState } from "react"; 
-// Import React library and useState hook (to manage state inside functional components)
-
+import React, { use, useEffect, useState } from "react"; 
 import Navbar from "../../components/Navbar/Navbar"; 
-// Import your Navbar component
-
-import NoteCard from "../../components/Cards/NoteCard"; 
-// Import NoteCard component that displays individual notes
-
+import NoteCard from "../../components/Cards/NoteCard";
 import { MdAdd, MdOutlineAlarmAdd } from "react-icons/md"; 
-// Import icons from react-icons library (MdAdd is the + button icon)
-
 import AddEditNotes from "./AddEditNotes"; 
-// Import AddEditNotes component which is the popup for adding/editing notes
-
+import moment from "moment";
 import Modal from "react-modal"; 
 // Import Modal library to show a popup window
+import { useNavigate } from "react-router-dom";
+import axiosInstance from "../../utils/axiosinstance";
 
 
 function Home() {
@@ -25,29 +18,71 @@ function Home() {
     data: null, // data for the note being edited (null when adding new)
   });
 
+  const [userInfo, setUserInfo] = useState(null);
+  const [allNotes, setAllNotes] = useState([]);
+
+  const navigate = useNavigate();
+  
+// Get User Info
+const getUserInfo = async () => {
+  try {
+    const response = await axiosInstance.get("/get-user");
+    if(response.data && response.data.user) {
+      setUserInfo(response.data.user);
+    }
+  } catch (error) {
+    if (error.response.status === 401) {
+      localStorage.clear();
+      navigate("/login");
+    }
+  }
+};
+
+const getAllNotes = async () => {
+  try {
+    const response = await axiosInstance.get("/get-all-notes", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    });
+    if (response.data && response.data.notes) {
+      setAllNotes(response.data.notes);
+      // Handle the notes data (e.g., set it to state)
+    }
+  } catch (error) {
+    console.log("An expected error occurred while fetching notes");
+  }
+};
+
+useEffect(() => {
+  getUserInfo();
+  getAllNotes();
+  return () => {};
+}, []);
+
   return (
     <>
-      <Navbar /> 
+      <Navbar userInfo={userInfo} /> 
       {/* Show Navbar at the top */}
 
       <div className="container mx-auto ">
         {/* Main container, centered on the page */}
         <div className="grid grid-cols-3 gap-4 m-8 ">
-          {/* Grid layout: 3 columns, with gap between cards */}
-          <NoteCard
-            title="Meeting on 25th December"
-            date="12th Dec 2025"
-            content="Meeting on 25th December"
-            tags="#Meeting"
-            isPinned={true} 
-            // NoteCard properties: title, date, content, tags, pinned
-            onEdit={() => {}} 
-            // Function to handle edit click (empty for now)
+          {allNotes.map((item, index) => (
+             <NoteCard
+             key={item._id || index}
+            title={item.title}
+            date={item.createdOn}
+            content={item.content}
+            tags={item.tags}
+            isPinned={item.isPinned}
+           
+            onEdit={() => {}}  
             onDelete={() => {}} 
-            // Function to handle delete click (empty for now)
             onPinNote={() => {}} 
-            // Function to handle pin/unpin (empty for now)
+            
           />
+          ))}
         </div>
       </div>
 

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import SearchBar from '../SearchBar/SearchBar';
 
 
-function Navbar() {
+function Navbar({userInfo}) {
 
   // This state stores what the user types into the search bar
   const [searchQuery, setSearchQuery] = useState("");
@@ -14,6 +14,7 @@ function Navbar() {
 
   // This function runs when the user clicks the Logout button
   const onLogout = () => {
+    localStorage.clear(); // Clear any saved data in the browser
     navigate("/Login"); // Redirect to the Logout page
   };
 
@@ -46,7 +47,7 @@ function Navbar() {
         />
 
         {/* Profile section with Logout button */}
-        <ProfileInfo onLogout={onLogout} />
+        <ProfileInfo userInfo={userInfo} onLogout={onLogout} />
       </div>
     </>
   );
