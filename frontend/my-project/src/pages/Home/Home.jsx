@@ -8,6 +8,7 @@ import Modal from "react-modal";
 // Import Modal library to show a popup window
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosinstance";
+import Toast from "../../components/ToastMessage/Toast";
 
 
 function Home() {
@@ -18,11 +19,28 @@ function Home() {
     data: null, // data for the note being edited (null when adding new)
   });
 
+  const [toastMessage, setToastMessage] = useState({
+    isShown: false,
+    type: "add",
+    message: "",
+  });
+
   const [userInfo, setUserInfo] = useState(null);
   const [allNotes, setAllNotes] = useState([]);
 
   const navigate = useNavigate();
-  
+  const handleEditNote = (noteDetails) => {
+    setOpenEditModel({ isShown: true, type: "edit", data: noteDetails });
+  };
+
+const showToastMessage = (type, message) => {
+  setToastMessage({ isShown: true, type, message });
+};
+
+const handleCloseToast = () => {
+  setToastMessage({ isShown: false, type: "add", message: "" });
+};
+
 // Get User Info
 const getUserInfo = async () => {
   try {
@@ -38,6 +56,7 @@ const getUserInfo = async () => {
   }
 };
 
+//get all Info
 const getAllNotes = async () => {
   try {
     const response = await axiosInstance.get("/get-all-notes", {
@@ -51,6 +70,21 @@ const getAllNotes = async () => {
     }
   } catch (error) {
     console.log("An expected error occurred while fetching notes");
+  }
+};
+
+// Delete Note
+const deleteNote = async (noteId) => {
+  try {
+    const response = await axiosInstance.delete("/delete-note/" + noteId);
+    if (response.data && response.data.note) {
+      showToastMessage("delete", "Note deleted successfully");
+      getAllNotes();
+    }
+  } catch (error) {
+    if (error.response && error.response.data && error.response.data.message) {
+      console.log("an expected error occurred while deleting note");
+    }
   }
 };
 
@@ -76,9 +110,9 @@ useEffect(() => {
             content={item.content}
             tags={item.tags}
             isPinned={item.isPinned}
-           
-            onEdit={() => {}}  
-            onDelete={() => {}} 
+
+            onEdit={() => {handleEditNote(item)}}  
+            onDelete={() => {deleteNote(item)}} 
             onPinNote={() => {}} 
             
           />
@@ -122,8 +156,17 @@ useEffect(() => {
             setOpenEditModel({isShown: false, type:"add", data: null}) 
             // Close the modal when popup tells it to close
           }}
+          getAllNotes={getAllNotes} 
+          showToastMessage={showToastMessage}
         />
       </Modal>
+
+      <Toast
+        isShown={toastMessage.isShown}
+        type={toastMessage.type}
+        message={toastMessage.message}
+        onClose={handleCloseToast}
+      />
     </>
   );
 }

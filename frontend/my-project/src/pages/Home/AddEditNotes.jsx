@@ -2,19 +2,52 @@
 import React, { useState } from 'react';         // React + state management
 import TagInput from '../../components/input/TagInput'; // TagInput component
 import { MdClose } from 'react-icons/md';        // Close ❌ icon
-
+import axiosInstance from '../../utils/axiosinstance';
 // 👉 Main Component
-function AddEditNotes({noteData, type, onClose}) {  // Receives props: note data, type (add/edit), and close function
+function AddEditNotes({noteData, type, getAllNotes, onClose, showToastMessage}) {  // Receives props: note data, type (add/edit), and close function
 
   // 👉 States (local storage for inputs)
-  const [title, setTitle] = useState("");       // Store note title
-  const [content, setContent] = useState("");   // Store note content
-  const [tags, setTags] = useState([]);         // Store tags list
+  const [title, setTitle] = useState(noteData?.title || "");       // Store note title
+  const [content, setContent] = useState(noteData?.content || "");   // Store note content
+  const [tags, setTags] = useState(noteData?.tags || []);         // Store tags list
   const [error,setError] = useState(null);      // Store error message
 
   // 👉 Function placeholders (backend logic can go here later)
-  const addNewNote = async () => {};            // Add note function
-  const editNote = async () => {};              // Edit note function
+  const addNewNote = async () => {
+     try {
+      const response = await axiosInstance.post("/add-note", {
+        title, content, tags  
+     });
+     if(response.data && response.data.note) {
+       showToastMessage("add", "Note added successfully");
+       getAllNotes();
+       onClose();
+     }
+   } catch (error) {
+     if(error.response && error.response.data && error.response.data.message) {
+       setError(error.response.data.message);
+     }
+   }
+  };            // Add note function
+  const editNote = async () => {
+    const noteId = noteData?._id;
+    try {
+      const response = await axiosInstance.put("/edit-note/"+noteId, {
+        title,
+        content,
+        tags
+     });
+     if(response.data && response.data.note) {
+      showToastMessage("edit", "Note updated successfully");
+       getAllNotes();
+       onClose();
+     }
+   } catch (error) {
+     if(error.response && error.response.data && error.response.data.message) {
+       setError(error.response.data.message);
+     }
+   }
+  };              // Edit note function
 
   // 👉 Handle form submit (add or edit note)
   const handleAddNote = () => {
@@ -86,7 +119,7 @@ function AddEditNotes({noteData, type, onClose}) {  // Receives props: note data
         className="bg-blue-500 w-full text-white rounded p-3 font-medium mt-5 hover:bg-blue-600"
         onClick={handleAddNote}                 // On click → run handleAddNote
       >
-        ADD
+        {type === "edit" ? "UPDATE" : "ADD"}
       </button>
     </>
   );

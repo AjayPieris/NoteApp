@@ -38,10 +38,9 @@ function NoteCard({
         </p>
      
         {/* Footer: Tags + Edit/Delete icons */}
-        <div className="flex items-center justify-between mt-2">
-          <div className="text-xs text-slate-500">{tags.map((item)=>`#${item}`)}</div> {/* Show tags */}
-
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between mt-2 ">
+           <div className=" text-xs text-slate-500">{tags.map((item)=>`#${item}`)}</div> {/* Show tags */}
+           <div className="flex items-center gap-2 ">
             {/* Edit icon */}
             <MdCreate
               className="icon-btn hover:text-green-600"
@@ -52,7 +51,8 @@ function NoteCard({
               className="icon-btn hover:text-red-600"
               onClick={onDelete} // Run the function when clicked
             />
-          </div>
+           </div>
+          
         </div>
       </div>
     </>
