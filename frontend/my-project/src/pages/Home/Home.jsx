@@ -1,167 +1,225 @@
-import React, { use, useEffect, useState } from "react"; 
-import Navbar from "../../components/Navbar/Navbar"; 
+import React, { useEffect, useState } from "react";
+import Navbar from "../../components/Navbar/Navbar";
 import NoteCard from "../../components/Cards/NoteCard";
-import { MdAdd, MdOutlineAlarmAdd } from "react-icons/md"; 
-import AddEditNotes from "./AddEditNotes"; 
-import moment from "moment";
-import Modal from "react-modal"; 
-// Import Modal library to show a popup window
+import { MdAdd } from "react-icons/md";
+import AddEditNotes from "./AddEditNotes";
+import Modal from "react-modal";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosinstance";
 import Toast from "../../components/ToastMessage/Toast";
-
+import EmptyCard from "../../components/EmptyCard/EmptyCard";
+import AddNotesImg from "../../assets/image/add-notes.jpeg";
+import NoDataImg from "../../assets/image/NoData.jpeg";
 
 function Home() {
-  // Home component: main page of your notes app
+  // Add/Edit modal state
   const [openAddEditModal, setOpenEditModel] = useState({
-    isShown: false, // whether the popup/modal is visible or not
-    type: "add", // type of action: "add" or "edit"
-    data: null, // data for the note being edited (null when adding new)
-  });
-
-  const [toastMessage, setToastMessage] = useState({
     isShown: false,
     type: "add",
+    data: null,
+  });
+
+  // Toast message state
+  const [toastMessage, setToastMessage] = useState({
+    isShown: false,
+    type: "",
     message: "",
   });
 
   const [userInfo, setUserInfo] = useState(null);
   const [allNotes, setAllNotes] = useState([]);
+  const [isSearch, setIsSearch] = useState(false);
 
   const navigate = useNavigate();
+
   const handleEditNote = (noteDetails) => {
     setOpenEditModel({ isShown: true, type: "edit", data: noteDetails });
   };
 
-const showToastMessage = (type, message) => {
-  setToastMessage({ isShown: true, type, message });
-};
+  const showToastMessage = (type, message) => {
+    setToastMessage({ isShown: true, type, message });
+  };
 
-const handleCloseToast = () => {
-  setToastMessage({ isShown: false, type: "add", message: "" });
-};
+  const handleCloseToast = () => {
+    setToastMessage({ isShown: false, type: "", message: "" });
+  };
 
-// Get User Info
-const getUserInfo = async () => {
-  try {
-    const response = await axiosInstance.get("/get-user");
-    if(response.data && response.data.user) {
-      setUserInfo(response.data.user);
+  // Get User Info
+  const getUserInfo = async () => {
+    try {
+      const response = await axiosInstance.get("/get-user", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      });
+      if (response.data && response.data.user) {
+        setUserInfo(response.data.user);
+      }
+    } catch (error) {
+      if (error.response?.status === 401) {
+        localStorage.clear();
+        navigate("/login");
+      } else {
+        console.error("Error fetching user info:", error.message);
+      }
     }
-  } catch (error) {
-    if (error.response.status === 401) {
-      localStorage.clear();
-      navigate("/login");
-    }
-  }
-};
+  };
 
-//get all Info
-const getAllNotes = async () => {
-  try {
-    const response = await axiosInstance.get("/get-all-notes", {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    });
-    if (response.data && response.data.notes) {
-      setAllNotes(response.data.notes);
-      // Handle the notes data (e.g., set it to state)
+  // Get all notes
+  const getAllNotes = async () => {
+    try {
+      const response = await axiosInstance.get("/get-all-notes", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      });
+      if (response.data && response.data.notes) {
+        setAllNotes(response.data.notes);
+      }
+    } catch (error) {
+      console.error("Error fetching notes:", error.message);
     }
-  } catch (error) {
-    console.log("An expected error occurred while fetching notes");
-  }
-};
+  };
 
-// Delete Note
-const deleteNote = async (data) => {
-  const noteId = data?._id;
-  try {
-    const response = await axiosInstance.delete("/delete-note/" + noteId);
-    if (response.data && !response.data.error) {
-      showToastMessage("Note deleted successfully", "delete");
-      getAllNotes();
+  // Delete Note
+  const deleteNote = async (data) => {
+    const noteId = data?._id;
+    try {
+      const response = await axiosInstance.delete("/delete-note/" + noteId, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      });
+      if (response.data && !response.data.error) {
+        showToastMessage("delete", "Note deleted successfully");
+        getAllNotes();
+      }
+    } catch (error) {
+      console.error("Error deleting note:", error.message);
     }
-  } catch (error) {
-    if (error.response && error.response.data && error.response.data.message) {
-      console.log("an expected error occurred while deleting note");
-    }
-  }
-};
+  };
 
-useEffect(() => {
-  getUserInfo();
-  getAllNotes();
-  return () => {};
-}, []);
+  // Search for a Note
+  const onSearchNote = async (query) => {
+    if (!query) return;
+
+    try {
+      const response = await axiosInstance.get("/search-notes", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+        params: { query },
+      });
+
+      if (response.data && response.data.notes) {
+        setAllNotes(response.data.notes);
+        setIsSearch(true);
+      }
+    } catch (error) {
+      console.error("Error searching notes:", error.message);
+    }
+  };
+
+  const handleClearSearch = () => {
+    setIsSearch(false);
+    getAllNotes();
+  };
+
+const updateIsPinned = async (noteData) => {
+    try {
+      const response = await axiosInstance.put(
+        "/update-note-pinned/" + noteData._id, {
+          isPinned: !noteData.isPinned
+        });
+      if (response.data && !response.data.error) {
+        showToastMessage("success", "Note updated successfully");
+        getAllNotes();
+        onClose();
+      }
+    } catch (error) {
+      console.error("Error updating note:", error.message);
+    }
+  };
+
+  useEffect(() => {
+    getUserInfo();
+    getAllNotes();
+  }, []);
 
   return (
     <>
-      <Navbar userInfo={userInfo} /> 
-      {/* Show Navbar at the top */}
+      {/* Navbar */}
+      <Navbar
+        userInfo={userInfo}
+        onSearchNote={onSearchNote}
+        handleClearSearch={handleClearSearch}
+      />
 
-      <div className="container mx-auto ">
-        {/* Main container, centered on the page */}
-        <div className="grid grid-cols-3 gap-4 m-8 ">
-          {allNotes.map((item, index) => (
-             <NoteCard
-             key={item._id || index}
-            title={item.title}
-            date={item.createdOn}
-            content={item.content}
-            tags={item.tags}
-            isPinned={item.isPinned}
-
-            onEdit={() => {handleEditNote(item)}}  
-            onDelete={() => deleteNote(item)} 
-            onPinNote={() => {}} 
-            
+      <div className="container mx-auto">
+        {allNotes.length > 0 ? (
+          <div className="grid grid-cols-3 gap-4 m-8">
+            {allNotes.map((item, index) => (
+              <NoteCard
+                key={item._id || index}
+                title={item.title}
+                date={item.createdOn}
+                content={item.content}
+                tags={item.tags}
+                isPinned={item.isPinned}
+                onEdit={() => handleEditNote(item)}
+                onDelete={() => deleteNote(item)}
+                onPinNote={() => updateIsPinned(item)} // placeholder
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyCard
+            imgSrc={isSearch ? NoDataImg : AddNotesImg}
+            message={
+              isSearch
+                ? "No notes found. Try a different search."
+                : "Your notebook is waiting! Start by creating your very first note and keep all your thoughts in one place."
+            }
           />
-          ))}
-        </div>
+        )}
       </div>
 
+      {/* Floating Add Button */}
       <button
-        className="w-16 h-16 mt-8 items-center justify-center rounded-2xl bg-primary hover:bg-blue-600 absolute right-10 bottom-10 "
-        // Floating button on bottom-right corner to add new note
-        onClick={() => {
-          setOpenEditModel({ isShown: true, type: "add", data: null }); 
-          // When clicked, open the modal to add a new note
-        }}
+        className="w-16 h-16 mt-8 flex items-center justify-center rounded-2xl bg-primary hover:bg-blue-600 absolute right-10 bottom-10"
+        onClick={() =>
+          setOpenEditModel({ isShown: true, type: "add", data: null })
+        }
       >
-        <MdAdd className="text-[32px] w-16 h-8 text-white" /> 
-        {/* + icon inside the button */}
+        <MdAdd className="text-[32px] text-white" />
       </button>
 
+      {/* Add/Edit Modal */}
       <Modal
-        isOpen={openAddEditModal.isShown} 
-        // Show modal only if isShown is true
-        onRequestClose={() => {}} 
-        // Function to run when user tries to close modal (empty for now)
+        isOpen={openAddEditModal.isShown}
+        onRequestClose={() =>
+          setOpenEditModel({ isShown: false, type: "add", data: null })
+        }
         style={{
           overlay: {
-            backgroundColor: "rgba(0,0,0,0.2)", 
-            // Slightly dark background behind modal
+            backgroundColor: "rgba(0,0,0,0.2)",
           },
         }}
-        contentLabel=""
+        contentLabel="Add/Edit Note"
         className="w-[40%] max-h-[75%] bg-white rounded-md mx-auto mt-14 p-5 overflow-hidden"
-        // Styling for modal content
       >
-        <AddEditNotes 
-          type={openAddEditModal.type} 
-          // Pass the type ("add" or "edit") to the popup
-          noteData={openAddEditModal.data} 
-          // Pass the note data if editing
-          onClose={()=>{
-            setOpenEditModel({isShown: false, type:"add", data: null}) 
-            // Close the modal when popup tells it to close
-          }}
-          getAllNotes={getAllNotes} 
+        <AddEditNotes
+          type={openAddEditModal.type}
+          noteData={openAddEditModal.data}
+          onClose={() =>
+            setOpenEditModel({ isShown: false, type: "add", data: null })
+          }
+          getAllNotes={getAllNotes}
           showToastMessage={showToastMessage}
         />
       </Modal>
 
+      {/* Toast Messages */}
       <Toast
         isShown={toastMessage.isShown}
         type={toastMessage.type}
@@ -173,4 +231,3 @@ useEffect(() => {
 }
 
 export default Home;
-// Export the Home component so it can be used in other files

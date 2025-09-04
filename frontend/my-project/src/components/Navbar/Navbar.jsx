@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import SearchBar from '../SearchBar/SearchBar';
 
 
-function Navbar({userInfo}) {
+function Navbar({userInfo, onSearchNote, handleClearSearch}) {
 
   // This state stores what the user types into the search bar
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,12 +20,15 @@ function Navbar({userInfo}) {
 
   // This function will run when the search icon is clicked (🔍)
   const handleSearch = () => { 
-    
+    if(searchQuery) {
+      onSearchNote(searchQuery);
+    } 
   };
 
   // This function clears the search input when X (❌) is clicked
   const onClearSearch = () => {
-    setSearchQuery(""); // Reset the input to empty
+    setSearchQuery("");
+    handleClearSearch(); // Reset the input to empty
   };
 
   return (
