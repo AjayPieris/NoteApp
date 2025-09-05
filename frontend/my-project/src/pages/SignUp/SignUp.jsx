@@ -33,28 +33,30 @@ function SignUp() {
     setError("");
 
     try {
-      // ✅ Send signup request
+      // 🚀 Send signup request to backend
       const response = await axiosInstance.post("/create-account", {
-        fullName: name, 
-        email: email,
-        password: password,
+        fullName: name, // User's name
+        email: email, // User's email
+        password: password, // User's password
       });
 
-      if(response.data && response.data.error){
-        setError(response.data.message);
-        return;
+      // ❌ If server sends back an error
+      if (response.data && response.data.error) {
+        setError(response.data.message); // Show error message
+        return; // Stop here (don’t continue)
       }
 
-      // ✅ Save token & redirect
+      // ✅ If signup success & token received
       if (response.data && response.data.accessToken) {
-        localStorage.setItem("accessToken", response.data.accessToken);
-        navigate("/dashboard");
+        localStorage.setItem("accessToken", response.data.accessToken); // Save token
+        navigate("/dashboard"); // Redirect to dashboard
       }
     } catch (error) {
+      // ❌ If request fails (server down, no internet, etc.)
       if (error.response && error.response.data) {
-        setError(error.response.data.message || "Signup failed");
+        setError(error.response.data.message || "Signup failed"); // Show server error
       } else {
-        setError("Something went wrong. Please try again later.");
+        setError("Something went wrong. Please try again later."); // Show fallback error
       }
     }
   };
