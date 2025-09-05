@@ -1,34 +1,35 @@
 import React, { useState } from 'react';
-import ProfileInfo from '../Cards/profileInfo';
-import { useNavigate } from 'react-router-dom'; 
-import SearchBar from '../SearchBar/SearchBar';
+import ProfileInfo from '../Cards/profileInfo'; // Shows user profile + logout
+import { useNavigate } from 'react-router-dom'; // For page navigation
+import SearchBar from '../SearchBar/SearchBar'; // Custom search bar component
 
+// Navbar takes props: userInfo, onSearchNote, handleClearSearch  
+// Props are like inputs you give to the component so it can work properly.
+function Navbar({ userInfo, onSearchNote, handleClearSearch }) {
 
-function Navbar({userInfo, onSearchNote, handleClearSearch}) {
-
-  // This state stores what the user types into the search bar
+  // Store what the user types in search bar
   const [searchQuery, setSearchQuery] = useState("");
 
-  // useNavigate gives us a way to move between pages (like redirecting)
+  // Hook to move between pages
   const navigate = useNavigate();
 
-  // This function runs when the user clicks the Logout button
+  // Logout: clear saved data + go to Login page
   const onLogout = () => {
-    localStorage.clear(); // Clear any saved data in the browser
-    navigate("/Login"); // Redirect to the Logout page
+    localStorage.clear();
+    navigate("/Login");
   };
 
-  // This function will run when the search icon is clicked (🔍)
+  // When user clicks 🔍 → search notes
   const handleSearch = () => { 
-    if(searchQuery) {
-      onSearchNote(searchQuery);
+    if (searchQuery) {
+      onSearchNote(searchQuery); // Run parent’s search function
     } 
   };
 
-  // This function clears the search input when X (❌) is clicked
+  // When user clicks ❌ → clear input + reset notes
   const onClearSearch = () => {
-    setSearchQuery("");
-    handleClearSearch(); // Reset the input to empty
+    setSearchQuery(""); 
+    handleClearSearch();
   };
 
   return (
@@ -36,20 +37,18 @@ function Navbar({userInfo, onSearchNote, handleClearSearch}) {
       {/* Navbar container */}
       <div className='bg-white flex items-center justify-between px-6 py-2 drop-shadow'>
 
-        {/* App title */}
+        {/* App title (left side) */}
         <h2 className='text-2xl font-medium text-black py-2'>Notes</h2>
 
-        {/* Search bar in the middle of the navbar */}
+        {/* Search bar (center) */}
         <SearchBar
-          value={searchQuery} // Pass the current input value
-          onChange={({ target }) => {
-            setSearchQuery(target.value); // Update value when user types
-          }}
-          handleSearch={handleSearch} // Runs when 🔍 is clicked
-          onClearSearch={onClearSearch} // Runs when ❌ is clicked
+          value={searchQuery} // Current input text
+          onChange={({ target }) => setSearchQuery(target.value)} // Update when typing
+          handleSearch={handleSearch} // Runs on 🔍
+          onClearSearch={onClearSearch} // Runs on ❌
         />
 
-        {/* Profile section with Logout button */}
+        {/* Profile info + logout button (right side) */}
         <ProfileInfo userInfo={userInfo} onLogout={onLogout} />
       </div>
     </>

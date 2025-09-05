@@ -1,23 +1,12 @@
-// Bring React into this file so we can use it
-import React from 'react';
+import React from 'react';               // Import React library
+import { StrictMode } from 'react';      // Import StrictMode for highlighting potential issues
+import { createRoot } from 'react-dom/client'; // Import createRoot to render the app into the DOM
+import App from './App.jsx';             // Import the main App component
+import './App.css';                      // Import CSS styling
 
-// Bring StrictMode from React (helps catch mistakes while coding)
-import { StrictMode } from 'react';
-
-// Bring createRoot function (connects React to the real web page)
-import { createRoot } from 'react-dom/client';
-
-// Bring in our main App component (the starting point of our app)
-import App from './App.jsx';
-
-// Bring in our CSS file to style the app
-import './App.css';
-
-// Find the <div id="root"> in the HTML and put our React app inside it
+// Render the App component inside the root element
 createRoot(document.getElementById('root')).render(
-  
-  // Run our App in StrictMode (check for mistakes while developing)
-  <StrictMode>
-    <App /> {/* This is our main component */}
+  <StrictMode> 
+    <App />   {/* Our main application component */}
   </StrictMode>
 );
