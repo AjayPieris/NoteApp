@@ -86,7 +86,7 @@ function AddEditNotes({noteData, type, getAllNotes, onClose, showToastMessage}) 
           <input
             type="text"
             className="text-2xl text-slate-950 outline-none border-b border-gray-300 focus:border-blue-500"
-            placeholder="Go To Gym At 5"
+            placeholder="Note Title"
             value={title}                       // Bind value with state
             onChange={({target}) => setTitle(target.value)} // Update title when typing
           />

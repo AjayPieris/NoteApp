@@ -1,62 +1,48 @@
 import React from "react";
-import moment from "moment"; // For date formatting
-import { MdOutlinePushPin } from "react-icons/md"; // Pin icon
-import { MdCreate, MdDelete } from "react-icons/md"; // Edit and Delete icons
+import moment from "moment"; // Format dates nicely
+import { MdOutlinePushPin, MdCreate, MdDelete } from "react-icons/md"; // Icons
 
-// NoteCard component shows a single note with title, date, content, tags, and action buttons
-function NoteCard({
-  title,      // Note title
-  date,       // Note creation or update date
-  content,    // Note content text
-  tags,       // Tags for the note
-  isPinned,   // Boolean: is the note pinned or not
-  onEdit,     // Function to run when Edit icon is clicked
-  onDelete,   // Function to run when Delete icon is clicked
-  onPinNote,  // Function to run when Pin icon is clicked
-}) {
+function NoteCard({ title, date, content, tags, isPinned, onEdit, onDelete, onPinNote }) {
   return (
-    <>
-      {/* Main card container */}
-      <div className="border rounded p-4 bg-white hover:shadow-xl transition-all ease-in-out">
-        {/* Header: Title + Date + Pin */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h6 className="text-sm font-medium">{title}</h6> {/* Show note title */}
-            <span className="text-xs text-slate-500">{moment(date).format("Do MMMM YYYY")}</span> {/* Show date */}
-          </div>
+    <div className="border rounded p-4 bg-white hover:shadow-xl transition-all ease-in-out"> {/* Card box */}
+      
+      <div className="flex items-center justify-between"> {/* Top row */}
+        <div>
+          <h6 className="text-sm font-medium">{title}</h6> {/* Note title */}
+          <span className="text-xs text-slate-500">
+            {moment(date).format("Do MMMM YYYY")} {/* Show date */}
+          </span>
+        </div>
 
-          {/* Pin icon: changes color if pinned */}
-          <MdOutlinePushPin
-            className={`icon-btn ${isPinned ? 'text-primary' : 'text-slate-300'}`}
-            onClick={onPinNote} // Run the function when clicked
+        <MdOutlinePushPin
+          className={`icon-btn ${isPinned ? "text-primary" : "text-slate-300"}`} // Pin color changes if pinned
+          onClick={onPinNote} // Click to pin/unpin
+        />
+      </div>
+
+      <p className="text-xs text-slate-600 mt-2">
+        {content?.slice(0, 60)} {/* Show only first 60 letters */}
+      </p>
+
+      <div className="flex items-center justify-between mt-2"> {/* Bottom row */}
+        
+        <div className="text-xs text-slate-500">
+          {tags.map((item) => `#${item}`)} {/* Show tags with # */}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <MdCreate
+            className="icon-btn hover:text-green-600"
+            onClick={onEdit} // Edit note
+          />
+          <MdDelete
+            className="icon-btn hover:text-red-600"
+            onClick={onDelete} // Delete note
           />
         </div>
-
-        {/* Note content preview */}
-        <p className="text-xs text-slate-600 mt-2">
-          {content?.slice(0, 60)} {/* Show first 60 characters */}
-        </p>
-     
-        {/* Footer: Tags + Edit/Delete icons */}
-        <div className="flex items-center justify-between mt-2 ">
-           <div className=" text-xs text-slate-500">{tags.map((item)=>`#${item}`)}</div> {/* Show tags */}
-           <div className="flex items-center gap-2 ">
-            {/* Edit icon */}
-            <MdCreate
-              className="icon-btn hover:text-green-600"
-              onClick={onEdit} // Run the function when clicked
-            />
-            {/* Delete icon */}
-            <MdDelete
-              className="icon-btn hover:text-red-600"
-              onClick={onDelete} // Run the function when clicked
-            />
-           </div>
-          
-        </div>
       </div>
-    </>
+    </div>
   );
 }
 
-export default NoteCard;
+export default NoteCard; // Use in other files

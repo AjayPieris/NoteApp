@@ -99,20 +99,26 @@ function Home() {
     }
   };
 
-  // Search for a Note
+  // Function to search notes
   const onSearchNote = async (query) => {
-    if (!query) return;
+    if (!query) return; // If search query is empty, do nothing
 
     try {
+      // Send a GET request to backend API "/search-notes"
       const response = await axiosInstance.get("/search-notes", {
         headers: {
+          // Attach the user’s login token for authentication
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
+        // Pass the search text (query) as a parameter to API
         params: { query },
       });
 
+      // If response has data and notes exist
       if (response.data && response.data.notes) {
         setAllNotes(response.data.notes);
+        // ⬆️ Replace current notes list with the searched notes
+
         setIsSearch(true);
       }
     } catch (error) {
@@ -120,17 +126,23 @@ function Home() {
     }
   };
 
+  // Function to clear the search and go back to all notes
   const handleClearSearch = () => {
     setIsSearch(false);
+    // ⬆️ Turn off "search mode"
+
     getAllNotes();
+    // ⬆️ Reload all notes from backend (show everything again)
   };
 
-const updateIsPinned = async (noteData) => {
+  const updateIsPinned = async (noteData) => {
     try {
       const response = await axiosInstance.put(
-        "/update-note-pinned/" + noteData._id, {
+        "/update-note-pinned/" + noteData._id,
+        {
           isPinned: !noteData.isPinned,
-        });
+        }
+      );
       if (response.data && response.data.note) {
         showToastMessage("edit", "Note updated successfully");
         getAllNotes();
@@ -195,13 +207,17 @@ const updateIsPinned = async (noteData) => {
 
       {/* Add/Edit Modal */}
       <Modal
-        isOpen={openAddEditModal.isShown}
+        isOpen={openAddEditModal.isShown}  // Show modal only if isShown = true
         onRequestClose={() =>
-          setOpenEditModel({ isShown: false, type: "add", data: null })
+          setOpenEditModel({ isShown: false  // Hide the modal
+            , type: "add"// Reset back to "Add new note" mode
+            , data: null })  // Clear any old note data inside
         }
+        // Set modal background overlay
         style={{
           overlay: {
-            backgroundColor: "rgba(0,0,0,0.2)",
+            // Target the overlay (background behind modal)
+            backgroundColor: "rgba(0,0,0,0.2)", // Make it black with 20% opacity (see-through)
           },
         }}
         contentLabel="Add/Edit Note"
