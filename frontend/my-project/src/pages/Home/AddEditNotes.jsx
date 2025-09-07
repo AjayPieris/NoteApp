@@ -1,83 +1,103 @@
-// 👉 Import tools
-import React, { useState } from 'react';         // React + state management
-import TagInput from '../../components/input/TagInput'; // TagInput component
-import { MdClose } from 'react-icons/md';        // Close ❌ icon
-import axiosInstance from '../../utils/axiosinstance';
-// 👉 Main Component
-function AddEditNotes({noteData, type, getAllNotes, onClose, showToastMessage}) {  // Receives props: note data, type (add/edit), and close function
+import React, { useState } from "react";
+import TagInput from "../../components/input/TagInput";
+import { MdClose } from "react-icons/md";
+import axiosInstance from "../../utils/axiosinstance";
 
-  // 👉 States (local storage for inputs)
-  const [title, setTitle] = useState(noteData?.title || "");       // Store note title
-  const [content, setContent] = useState(noteData?.content || "");   // Store note content
-  const [tags, setTags] = useState(noteData?.tags || []);         // Store tags list
-  const [error,setError] = useState(null);      // Store error message
+function AddEditNotes({
+  noteData,
+  type,
+  getAllNotes,
+  onClose,
+  showToastMessage,
+}) {
+  const [title, setTitle] = useState(noteData?.title || ""); // Store note title
+  const [content, setContent] = useState(noteData?.content || ""); // Store note content
+  const [tags, setTags] = useState(noteData?.tags || []); // Store tags list
+  const [error, setError] = useState(null); // Store error message
 
-  // 👉 Function placeholders (backend logic can go here later)
   const addNewNote = async () => {
-     try {
-      const response = await axiosInstance.post("/add-note", {
-        title, content, tags  
-     });
-     if(response.data && response.data.note) {
-       showToastMessage("add", "Note added successfully");
-       getAllNotes();
-       onClose();
-     }
-   } catch (error) {
-     if(error.response && error.response.data && error.response.data.message) {
-       setError(error.response.data.message);
-     }
-   }
-  };            // Add note function
-  const editNote = async () => {
-    const noteId = noteData?._id;
+    // Function to add a new note (async because it talks to server)
     try {
-      const response = await axiosInstance.put("/edit-note/"+noteId, {
+      const response = await axiosInstance.post("/add-note", {
+        // Send note data to server (POST request)
         title,
         content,
-        tags
-     });
-     if(response.data && response.data.note) {
-      showToastMessage("edit", "Note updated successfully");
-       getAllNotes();
-       onClose();
-     }
-   } catch (error) {
-     if(error.response && error.response.data && error.response.data.message) {
-       setError(error.response.data.message);
-     }
-   }
-  };              // Edit note function
+        tags, // Send these 3 things: title, content, tags
+      });
 
-  // 👉 Handle form submit (add or edit note)
-  const handleAddNote = () => {
-    if(!title) {                                // If title empty
-      setError("Please enter the title");       // Show error
-      return;
-    }
-    if(!content){                               // If content empty
-      setError("Please enter the Content");     // Show error
-      return;
-    }
-    setError("");                               // Clear errors
-
-    if(type === 'edit'){                        // If editing note
-      editNote();                               // Call edit function
-    } else {                                    // Else (new note)
-      addNewNote();                             // Call add function
+      if (response.data && response.data.note) {
+        // If server replies with a new note
+        showToastMessage("add", "Note added successfully"); // Show success message
+        getAllNotes(); // Refresh all notes list
+        onClose(); // Close the modal/popup
+      }
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        setError(error.response.data.message); // Show error message from server
+      }
     }
   };
 
-  // 👉 JSX (UI Part)
+  const editNote = async () => {
+    const noteId = noteData?._id; // Get the ID of the note we want to edit
+    try {
+      const response = await axiosInstance.put("/edit-note/" + noteId, {
+        // Send updated data to server (PUT request)
+        title, // New title
+        content, // New content
+        tags, // New tags
+      });
+
+      if (response.data && response.data.note) {
+        showToastMessage("edit", "Note updated successfully"); // Show success message
+        getAllNotes(); // Refresh the list of notes
+        onClose(); // Close the modal/popup
+      }
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        setError(error.response.data.message); // Show error message from server
+      }
+    }
+  };
+
+  // Handle form submit (add or edit note)
+  const handleAddNote = () => {
+    if (!title) {
+      setError("Please enter the title"); 
+      return;
+    }
+    if (!content) {
+      setError("Please enter the Content"); 
+      return;
+    }
+    setError(""); 
+
+    if (type === "edit") {
+      // If editing note
+      editNote(); // Call edit function
+    } else {
+      // Else (new note)
+      addNewNote(); // Call add function
+    }
+  };
+
   return (
     <>
-      <div className='relative'>
+      <div className="relative">
         {/* Close Button (❌ in top corner) */}
-        <button 
-          className='w-10 h-10 rounded-full flex items-center justify-center absolute -top-3 -right-3 hover:bg-slate-50' 
-          onClick={onClose}                     // When clicked → close form
+        <button
+          className="w-10 h-10 rounded-full flex items-center justify-center absolute -top-3 -right-3 hover:bg-slate-50"
+          onClick={onClose} // When clicked → close form
         >
-          <MdClose className='text-xl text-slate-400'></MdClose> {/* ❌ Icon */}
+          <MdClose className="text-xl text-slate-400"></MdClose> {/* ❌ Icon */}
         </button>
 
         {/* Title Input */}
@@ -87,8 +107,8 @@ function AddEditNotes({noteData, type, getAllNotes, onClose, showToastMessage}) 
             type="text"
             className="text-2xl text-slate-950 outline-none border-b border-gray-300 focus:border-blue-500"
             placeholder="Note Title"
-            value={title}                       // Bind value with state
-            onChange={({target}) => setTitle(target.value)} // Update title when typing
+            value={title} // Bind value with state
+            onChange={({ target }) => setTitle(target.value)} // Update title when typing
           />
         </div>
 
@@ -99,8 +119,8 @@ function AddEditNotes({noteData, type, getAllNotes, onClose, showToastMessage}) 
             placeholder="Content"
             rows={10}
             className="h-36 text-sm text-slate-950 outline-none bg-slate-50 p-2 rounded border border-gray-300 focus:border-blue-500"
-            value={content}                     // Bind value with state
-            onChange={({target}) => setContent(target.value)} // Update content when typing
+            value={content} // Bind value with state
+            onChange={({ target }) => setContent(target.value)} // Update content when typing
           />
         </div>
       </div>
@@ -108,16 +128,17 @@ function AddEditNotes({noteData, type, getAllNotes, onClose, showToastMessage}) 
       {/* Tags Section */}
       <div className="mt-3">
         <label className="text-sm font-medium text-gray-700">TAGS</label>
-        <TagInput tags={tags} setTags={setTags}/> {/* Use TagInput component */}
+        <TagInput tags={tags} setTags={setTags} />{" "}
+        {/* Use TagInput component */}
       </div>
 
       {/* Error Message */}
-      {error && <p className='text-red-500 text-xs pt-4 '>{error}</p>}
+      {error && <p className="text-red-500 text-xs pt-4 ">{error}</p>}
 
       {/* Add/Edit Button */}
       <button
         className="bg-blue-500 w-full text-white rounded p-3 font-medium mt-5 hover:bg-blue-600"
-        onClick={handleAddNote}                 // On click → run handleAddNote
+        onClick={handleAddNote} // On click → run handleAddNote
       >
         {type === "edit" ? "UPDATE" : "ADD"}
       </button>
@@ -125,5 +146,4 @@ function AddEditNotes({noteData, type, getAllNotes, onClose, showToastMessage}) 
   );
 }
 
-// 👉 Export component to use in other files
 export default AddEditNotes;
