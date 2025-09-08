@@ -135,27 +135,28 @@ function Home() {
     // ⬆️ Reload all notes from backend (show everything again)
   };
 
-  const updateIsPinned = async (noteData) => {
-    try {
-      const response = await axiosInstance.put(
-        "/update-note-pinned/" + noteData._id,
+  const updateIsPinned = async (noteData) => {         
+    try {                                            
+      const response = await axiosInstance.put(       // Send a PUT request to the server
+        "/update-note-pinned/" + noteData._id,       // URL includes the note ID
         {
-          isPinned: !noteData.isPinned,
+          isPinned: !noteData.isPinned,              // Flip the pinned status: true → false, false → true
         }
       );
-      if (response.data && response.data.note) {
-        showToastMessage("edit", "Note updated successfully");
-        getAllNotes();
+      if (response.data && response.data.note) {     
+        showToastMessage("edit", "Note updated successfully"); // Show a popup message
+        getAllNotes();                               // Refresh the notes list
       }
-    } catch (error) {
-      console.log(error);
+    } catch (error) {                                
     }
-  };
+};
 
-  useEffect(() => {
-    getUserInfo();
-    getAllNotes();
-  }, []);
+
+  useEffect(() => {          
+    getUserInfo();        
+    getAllNotes();         
+}, []);                    // Empty array = run only once
+
 
   return (
     <>
