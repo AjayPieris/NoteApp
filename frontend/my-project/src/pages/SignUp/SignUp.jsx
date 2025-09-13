@@ -33,26 +33,26 @@ function SignUp() {
     setError("");
 
     try {
-      // 🚀 Send signup request to backend
+      //  Send signup request to backend
       const response = await axiosInstance.post("/create-account", {
         fullName: name, // User's name
         email: email, // User's email
         password: password, // User's password
       });
 
-      // ❌ If server sends back an error
+      //  If server sends back an error
       if (response.data && response.data.error) {
         setError(response.data.message); // Show error message
         return; // Stop here (don’t continue)
       }
 
-      // ✅ If signup success & token received
+      // If signup success & token received
       if (response.data && response.data.accessToken) {
         localStorage.setItem("accessToken", response.data.accessToken); // Save token
         navigate("/dashboard"); // Redirect to dashboard
       }
     } catch (error) {
-      // ❌ If request fails (server down, no internet, etc.)
+      //  If request fails (server down, no internet, etc.)
       if (error.response && error.response.data) {
         setError(error.response.data.message || "Signup failed"); // Show server error
       } else {

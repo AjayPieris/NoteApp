@@ -82,7 +82,7 @@ function Home() {
   };
 
   // Delete Note
-  const deleteNote = async (data) => {
+  const deleteNote = async (item) => {
     const noteId = data?._id;
     try {
       const response = await axiosInstance.delete("/delete-note/" + noteId, {
@@ -121,6 +121,7 @@ function Home() {
 
         setIsSearch(true);
       }
+      
     } catch (error) {
       console.error("Error searching notes:", error.message);
     }
